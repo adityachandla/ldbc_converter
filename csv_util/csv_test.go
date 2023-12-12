@@ -1,13 +1,34 @@
 package csv_util_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/adityachandla/ldbc_converter/csv_util"
 )
 
+func TestWriter(t *testing.T) {
+	filename := "writer_test.csv"
+	writer := csv_util.CreateCsvFileWriter(filename)
+	writer.WriteRow([]string{"name", "age"})
+	writer.WriteRow([]string{"one", "22"})
+	writer.Close()
+
+	reader := csv_util.CreateCsvFileReader(filename)
+	row, err := reader.ReadRow()
+	if err != nil {
+		t.Fatalf("%v\n", err)
+	}
+	if !sliceEqual(row, []string{"one", "22"}) {
+		t.Fail()
+	}
+	reader.Close()
+	os.Remove(filename)
+}
+
 func TestReadRow(t *testing.T) {
-	csv := csv_util.CreateCsvFile("./testfile.csv")
+	csv := csv_util.CreateCsvFileReader("./testfile.csv")
+	defer csv.Close()
 	row, err := csv.ReadRow()
 	if err != nil {
 		t.Fail()
@@ -18,7 +39,8 @@ func TestReadRow(t *testing.T) {
 }
 
 func TestReset(t *testing.T) {
-	csv := csv_util.CreateCsvFile("./testfile.csv")
+	csv := csv_util.CreateCsvFileReader("./testfile.csv")
+	defer csv.Close()
 	_, err := csv.ReadRow()
 	if err != nil {
 		t.Fatalf("Error while reading row")
