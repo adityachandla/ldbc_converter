@@ -1,0 +1,47 @@
+package csv_util_test
+
+import (
+	"testing"
+
+	"github.com/adityachandla/ldbc_converter/csv_util"
+)
+
+func TestReadRow(t *testing.T) {
+	csv := csv_util.CreateCsvFile("./testfile.csv")
+	row, err := csv.ReadRow()
+	if err != nil {
+		t.Fail()
+	}
+	if !sliceEqual(row, []string{"one", "22", "go away"}) {
+		t.Fail()
+	}
+}
+
+func TestReset(t *testing.T) {
+	csv := csv_util.CreateCsvFile("./testfile.csv")
+	_, err := csv.ReadRow()
+	if err != nil {
+		t.Fatalf("Error while reading row")
+	}
+	csv.Reset()
+	row, err := csv.ReadRow()
+	if err != nil {
+		t.Fatalf("Error while reading row")
+	}
+	expected := []string{"one", "22", "go away"}
+	if !sliceEqual(row, expected) {
+		t.Fatalf("Expected %v Got %v", expected, row)
+	}
+}
+
+func sliceEqual(one []string, two []string) bool {
+	if len(one) != len(two) {
+		return false
+	}
+	for i := 0; i < len(one); i++ {
+		if one[i] != two[i] {
+			return false
+		}
+	}
+	return true
+}
