@@ -2,7 +2,6 @@ package csv_util
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"slices"
 	"strings"
@@ -29,7 +28,6 @@ func CreateCsvFileReader(name string) *CsvFileReader {
 	}
 	l = strings.Trim(l, TRIM_CUTSET)
 	headers := strings.Split(l, CSV_SEPARATOR)
-	fmt.Println(headers)
 	return &CsvFileReader{
 		fileHandle: file,
 		reader:     r,

@@ -38,6 +38,36 @@ func TestReadRow(t *testing.T) {
 	}
 }
 
+func TestReadEmpty(t *testing.T) {
+	csv := csv_util.CreateCsvFileReader("./testfile.csv")
+	defer csv.Close()
+	row, _ := csv.ReadRow()
+	row, _ = csv.ReadRow()
+	row, err := csv.ReadRow()
+	if err != nil {
+		t.Fail()
+	}
+	if !sliceEqual(row, []string{"three", "", "hi"}) {
+		t.Fail()
+	}
+}
+
+func TestReadEmptyLast(t *testing.T) {
+	csv := csv_util.CreateCsvFileReader("./testfile.csv")
+	defer csv.Close()
+	row, _ := csv.ReadRow()
+	row, _ = csv.ReadRow()
+	row, _ = csv.ReadRow()
+	row, err := csv.ReadRow()
+	if err != nil {
+		t.Fail()
+	}
+	expected := []string{"four", "22", ""}
+	if !sliceEqual(row, expected) {
+		t.Fatalf("Expected %v but got %v\n", expected, row)
+	}
+}
+
 func TestReset(t *testing.T) {
 	csv := csv_util.CreateCsvFileReader("./testfile.csv")
 	defer csv.Close()

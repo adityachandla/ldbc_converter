@@ -22,11 +22,10 @@ func main() {
 	if !strings.HasSuffix(DirPath, "/") {
 		DirPath = DirPath + "/"
 	}
-	// We will have two directories temp and out
+	// We will have two temp directories
 	os.Mkdir(TEMP_DIR, os.ModePerm)
-	//os.Mkdir("out", os.ModePerm)
 
-	//We need input file, output file and headers
+	//Read this stuff from a config file or something.
 	personHeaders := []string{"id", "LocationCityId"}
 	inPath := DirPath + "Person/"
 	outFile := TEMP_DIR + "person.csv"
@@ -36,6 +35,12 @@ func main() {
 	inPath = DirPath + "Person_knows_Person/"
 	outFile = TEMP_DIR + "personKnows.csv"
 	mapCsv(knowsHeaders, inPath, outFile)
+
+	commentsHeaders := []string{"id", "CreatorPersonId",
+		"LocationCountryId", "ParentPostId", "ParentCommentId"}
+	inPath = DirPath + "Comment/"
+	outFile = TEMP_DIR + "comment.csv"
+	mapCsv(commentsHeaders, inPath, outFile)
 }
 
 // Combines input files in all directories and outputs a
