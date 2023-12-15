@@ -1,0 +1,100 @@
+outDir: ./temp/
+inputDirPrefix: ./out-sf1/
+mappings:
+  - dir: Person/
+    outFile: person.csv
+    headers:
+      - id
+      - LocationCityId
+  - dir: Comment/
+    outFile: comment.csv
+    headers:
+      - id
+      - CreatorPersonId
+      - LocationCountryId
+      - ParentPostId
+      - ParentCommentId
+  - dir: Post/
+    outFile: post.csv
+    headers:
+      - id
+      - CreatorPersonId
+      - LocationCountryId
+      - ContainerForumId
+  - dir: Place/
+    outFile: place.csv
+    headers:
+      - id
+      - PartOfPlaceId
+  - dir: Post_hasTag_Tag/
+    outFile: postTag.csv
+    headers:
+      - PostId
+      - TagId
+  - dir: Forum_hasMember_Person/
+    outFile: forumMember.csv
+    headers:
+      - ForumId
+      - PersonId
+  - dir: Person_workAt_Company/
+    outFile: personWorksAt.csv
+    headers:
+      - PersonId
+      - CompanyId
+  - dir: Person_studyAt_University/
+    outFile: personStudyAt.csv
+    headers:
+      - PersonId
+      - UniversityId
+  - dir: Person_knows_Person/
+    outFile: personKnows.csv
+    headers:
+      - Person1Id
+      - Person2Id
+  - dir: Person_likes_Comment/
+    outFile: personLikesComment.csv
+    headers:
+      - PersonId
+      - CommentId
+  - dir: Person_likes_Post/
+    outFile: personLikesPost.csv
+    headers:
+      - PersonId
+      - PostId
+  - dir: Person_hasInterest_Tag/
+    outFile: personHasInterest.csv
+    headers:
+      - PersonId
+      - TagId
+  - dir: Tag/
+    outFile: tag.csv
+    headers:
+      - id
+      - TypeTagClassId
+  - dir: TagClass/
+    outFile: tagClass.csv
+    headers:
+      - id
+      - SubclassOfTagClassId
+  - dir: Forum_hasTag_Tag/
+    outFile: forumTag.csv
+    headers:
+      - ForumId
+      - TagId
+  - dir: Organisation/
+    outFile: organisation.csv
+    headers:
+      - id
+      - LocationPlaceId
+  - dir: Forum/
+    outFile: forum.csv
+    headers:
+      - id
+      - ModeratorPersonId
+  - dir: Comment_hasTag_Tag/
+    outFile: commentTag.csv
+    headers:
+      - commentId
+      - TagId
+
+

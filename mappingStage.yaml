@@ -1,0 +1,37 @@
+inDir: ./temp/
+outDir: ./maping/
+nodeMappings:
+  - inputFile: person.csv
+    mappingField: id
+    dependencies:
+      - file: personKnows.csv
+        fields:
+          - Person1Id
+          - Person2Id
+      - file: person.csv
+        fields:
+          - id
+      - file: personStudyAt.csv
+        fields:
+          - PersonId
+      - file: personWorksAt.csv
+        fields:
+          - PersonId
+      - file: personLikesPost.csv
+        fields:
+          - PersonId
+      - file: personLikesComment.csv
+        fields:
+          - PersonId
+      - file: personHasInterest.csv
+        fields:
+          - PersonId
+      - file: forumMember.csv
+        fields:
+          - PersonId
+      - file: comment.csv
+        fields:
+          - CreatorPersonId
+      - file: post.csv
+        fields:
+          - CreatorPersonId

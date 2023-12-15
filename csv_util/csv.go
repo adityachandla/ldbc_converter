@@ -35,6 +35,10 @@ func CreateCsvFileReader(name string) *CsvFileReader {
 	}
 }
 
+func (csv *CsvFileReader) GetHeaders() []string {
+	return csv.headers
+}
+
 func (csv *CsvFileReader) ReadRow() ([]string, error) {
 	l, err := csv.reader.ReadString('\n')
 	if err != nil {
