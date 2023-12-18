@@ -94,7 +94,7 @@ mappings:
   - dir: Comment_hasTag_Tag/
     outFile: commentTag.csv
     headers:
-      - commentId
+      - CommentId
       - TagId
 
 

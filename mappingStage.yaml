@@ -35,3 +35,32 @@ nodeMappings:
       - file: post.csv
         fields:
           - CreatorPersonId
+## Going to be the same for comment and post.
+  - inputFile: post.csv 
+    mappingField: id
+    dependencies:
+      - file: post.csv
+        fields:
+          - id
+      - file: comment.csv
+        fields:
+          - ParentPostId
+      - file: personLikesPost.csv
+        fields:
+          - PostId
+      - file: postTag.csv
+        fields:
+          - PostId
+  - inputFile: comment.csv 
+    mappingField: id
+    dependencies:
+      - file: comment.csv
+        fields:
+          - id
+          - ParentCommentId
+      - file: commentTag.csv
+        fields:
+          - CommentId
+      - file: personLikesComment.csv
+        fields:
+          - CommentId
