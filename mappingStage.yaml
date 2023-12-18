@@ -11,6 +11,9 @@ nodeMappings:
       - file: person.csv
         fields:
           - id
+      - file: forum.csv
+        fields:
+          - ModeratorPersonId
       - file: personStudyAt.csv
         fields:
           - PersonId
@@ -35,7 +38,6 @@ nodeMappings:
       - file: post.csv
         fields:
           - CreatorPersonId
-## Going to be the same for comment and post.
   - inputFile: post.csv 
     mappingField: id
     dependencies:
@@ -64,3 +66,76 @@ nodeMappings:
       - file: personLikesComment.csv
         fields:
           - CommentId
+  - inputFile: forum.csv 
+    mappingField: id
+    dependencies:
+      - file: forum.csv
+        fields:
+          - id
+      - file: forumMember.csv
+        fields:
+          - ForumId
+      - file: forumTag.csv
+        fields:
+          - ForumId
+      - file: post.csv
+        fields:
+          - ContainerForumId
+  - inputFile: tag.csv 
+    mappingField: id
+    dependencies:
+      - file: tag.csv
+        fields:
+          - id
+      - file: commentTag.csv
+        fields:
+          - TagId
+      - file: postTag.csv
+        fields:
+          - TagId
+      - file: personHasInterest.csv
+        fields:
+          - TagId
+      - file: forumTag.csv
+        fields:
+          - TagId
+  - inputFile: tagClass.csv 
+    mappingField: id
+    dependencies:
+      - file: tagClass.csv
+        fields:
+          - id
+      - file: tag.csv
+        fields:
+          - TypeTagClassId
+  - inputFile: organisation.csv 
+    mappingField: id
+    dependencies:
+      - file: organisation.csv
+        fields:
+          - id
+      - file: personStudyAt.csv
+        fields:
+          - UniversityId
+      - file: personWorksAt.csv
+        fields:
+          - CompanyId
+  - inputFile: place.csv 
+    mappingField: id
+    dependencies:
+      - file: place.csv
+        fields:
+          - id
+          - PartOfPlaceId
+      - file: person.csv
+        fields:
+          - LocationCityId
+      - file: organisation.csv
+        fields:
+          - LocationPlaceId
+      - file: comment.csv
+        fields:
+          - LocationCountryId
+      - file: post.csv
+        fields:
+          - LocationCountryId

@@ -67,10 +67,11 @@ func (csv *CsvFileReader) ReadRowValues(
 	if err != nil {
 		return nil, err
 	}
-	resultValues := make([]string, 0, len(selectedHeaders))
+	resultValues := make([]string, len(selectedHeaders))
 	for i := range csv.headers {
-		if slices.Contains(selectedHeaders, csv.headers[i]) {
-			resultValues = append(resultValues, row[i])
+		idx := slices.Index(selectedHeaders, csv.headers[i])
+		if idx != -1 {
+			resultValues[idx] = row[i]
 		}
 	}
 	return resultValues, nil

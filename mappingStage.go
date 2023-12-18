@@ -43,7 +43,8 @@ func (dep *mappingDependencies) processDependency(mapping map[string]uint32,
 			if newVal, ok := mapping[row[i]]; ok {
 				row[i] = fmt.Sprintf("%d", newVal)
 			} else {
-				panic(row[i] + " Not found in mapping")
+				err := fmt.Errorf("%s not found. Row=%v. dep=%v", row[i], row, dep)
+				panic(err)
 			}
 		}
 		newFileWriter.WriteRow(row)
@@ -79,7 +80,7 @@ func RunMappingStage(configFile string) {
 		os.Mkdir(dirName, os.ModePerm)
 		runMappingForNode(&node, dirName, prevDir)
 		copyUnmodifiedFiles(&node, dirName, prevDir)
-		fmt.Printf("Completed. Stage=%s CurrNodeId=%d\n", dirName, nodeId)
+		fmt.Printf("Completed. File=%s CurrNodeId=%d\n", node.MapInputFile, nodeId)
 		prevDir = dirName
 	}
 }
@@ -135,7 +136,7 @@ func createMapping(fileName, fieldName string) map[string]uint32 {
 	mapping := make(map[string]uint32)
 	row, err := csvReader.ReadRow()
 	for err == nil {
-		mapping[row[idIndex]] = newNodeId
+		mapping[row[idIndex]] = nodeId
 		nodeId++
 		row, err = csvReader.ReadRow()
 	}
