@@ -39,6 +39,19 @@ func (csv *CsvFileReader) GetHeaders() []string {
 	return csv.headers
 }
 
+func (csv *CsvFileReader) GetHeaderIndices(headers []string) []int {
+	indices := make([]int, 0, len(headers))
+	for i, h := range csv.headers {
+		if slices.Contains(headers, h) {
+			indices = append(indices, i)
+		}
+	}
+	if len(headers) != len(indices) {
+		panic("Some field was not found")
+	}
+	return indices
+}
+
 func (csv *CsvFileReader) ReadRow() ([]string, error) {
 	l, err := csv.reader.ReadString('\n')
 	if err != nil {

@@ -44,8 +44,8 @@ func RunStripStage(configName string) {
 		inDir := config.InputDirPrefix + config.Mappings[i].Dir
 		outFile := config.OutDir + config.Mappings[i].OutFile
 		headers := config.Mappings[i].Headers
+		wg.Add(1)
 		go func() {
-			wg.Add(1)
 			defer wg.Done()
 			stripCsv(headers, inDir, outFile)
 		}()

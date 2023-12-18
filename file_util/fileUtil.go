@@ -29,10 +29,11 @@ func GetCsvFiles(path string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	filtered := make([]string, len(fileNames)-1)
+	filtered := make([]string, 0, len(fileNames)-1)
 	for _, fileName := range fileNames {
 		if strings.HasSuffix(fileName, ".csv") {
-			filtered = append(filtered, fileName)
+			trimedFileName := strings.Trim(fileName, " \n")
+			filtered = append(filtered, trimedFileName)
 		}
 	}
 	return filtered, nil
