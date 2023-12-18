@@ -1,0 +1,3 @@
+inputDir: ./mapping/stage_7/
+numPartitions: 10
+outputDir: adjacency/
