@@ -2,3 +2,4 @@ out-sf*
 ldbc_converter
 temp*
 mapping/*
+adjacency/*
