@@ -37,7 +37,7 @@ func (dep *mappingDependencies) processDependency(mapping map[string]uint32,
 
 var nodeId uint32 = 0
 
-func RunMappingStage(configFile string) uint32 {
+func RunMappingStage(configFile string) (uint32, string) {
 	config := readMappingConfig(configFile)
 	os.Mkdir(config.OutDir, os.ModePerm)
 	//This will change after every mapping
@@ -50,7 +50,7 @@ func RunMappingStage(configFile string) uint32 {
 		fmt.Printf("Completed. File=%s CurrNodeId=%d\n", node.MapInputFile, nodeId)
 		prevDir = dirName
 	}
-	return nodeId
+	return nodeId, config.OutDir
 }
 
 func copyUnmodifiedFiles(node *nodeMapping, newDir, oldDir string) {

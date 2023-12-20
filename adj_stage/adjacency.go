@@ -101,7 +101,7 @@ func splitFile(dir, fileName string) {
 	}
 }
 
-func RunAdjacencyStage(nodeCount uint32, configFile string) {
+func RunAdjacencyStage(nodeCount uint32, configFile string) string {
 	config := readConfig(configFile)
 	os.Mkdir(config.OutDir, os.ModePerm)
 	partitioner := createPartitioner(config.Partitions, nodeCount, config.OutDir)
@@ -115,4 +115,5 @@ func RunAdjacencyStage(nodeCount uint32, configFile string) {
 	}
 	//Files larger than a given size should be split.
 	splitFiles(config.OutDir, config.FileSizeMb)
+	return config.OutDir
 }

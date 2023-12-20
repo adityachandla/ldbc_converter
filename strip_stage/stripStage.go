@@ -8,7 +8,7 @@ import (
 	"github.com/adityachandla/ldbc_converter/file_util"
 )
 
-func RunStripStage(configName string) {
+func RunStripStage(configName string) string {
 	config := readStripConfig(configName)
 	os.Mkdir(config.OutDir, os.ModePerm)
 	wg := sync.WaitGroup{}
@@ -23,6 +23,7 @@ func RunStripStage(configName string) {
 		}()
 	}
 	wg.Wait()
+	return config.OutDir
 }
 
 // Combines input files in all directories and outputs a

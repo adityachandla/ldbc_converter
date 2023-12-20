@@ -61,3 +61,10 @@ func GetFilesLargerThan(path string, sizeMb int) ([]string, error) {
 	}
 	return files, nil
 }
+
+func RemoveDir(path string) {
+	err := os.RemoveAll(path)
+	if err != nil {
+		panic(err)
+	}
+}
