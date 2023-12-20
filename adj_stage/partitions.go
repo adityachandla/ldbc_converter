@@ -59,7 +59,7 @@ type Partition struct {
 }
 
 func createPartition(start, end uint32, outDir string) Partition {
-	filePath := fmt.Sprintf("%ss_%d_e_%d.csv", outDir, start, end)
+	filePath := fmt.Sprintf("%s"+FILE_FORMAT, outDir, start, end)
 	f, err := os.Create(filePath)
 	if err != nil {
 		panic("Unable to create required file")

@@ -1,20 +1,23 @@
 package adj_stage
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
-	"strconv"
+	"sync"
 
-	"github.com/adityachandla/ldbc_converter/csv_util"
 	"github.com/adityachandla/ldbc_converter/file_util"
 	"github.com/go-yaml/yaml"
 )
+
+const FILE_FORMAT string = "s_%d_e_%d.csv"
 
 type adjacencyConfig struct {
 	InDir      string `yaml:"inputDir"`
 	Partitions uint32 `yaml:"numPartitions"`
 	OutDir     string `yaml:"outputDir"`
+	FileSizeMb int    `yaml:"fileSizeMb"`
 }
 
 func readConfig(file string) *adjacencyConfig {
@@ -31,85 +34,71 @@ func readConfig(file string) *adjacencyConfig {
 	return &config
 }
 
-type Edge struct {
-	src, dest, label uint32
-}
-
-type EdgeProducer struct {
-	filePaths  []string
-	currIdx    int //Current index of the filePath
-	reader     *csv_util.CsvFileReader
-	edgeLabels []uint32 //Edge labels for the current file
-	labelId    uint32   //Start: 1 Stores: 1+the highest label assigned
-}
-
-func createEdgeProducer(inDir string) *EdgeProducer {
-	names, err := file_util.GetCsvFiles(inDir)
+func splitFiles(baseDir string, sizeMb int) {
+	filesToSplit, err := file_util.GetFilesLargerThan(baseDir, sizeMb)
 	if err != nil {
 		panic(err)
 	}
-	for i := range names {
-		names[i] = inDir + names[i]
-	}
-	reader := csv_util.CreateCsvFileReader(names[0])
-	fmt.Printf("Reading file %s\n", names[0])
-	ep := &EdgeProducer{
-		filePaths: names,
-		currIdx:   0,
-		reader:    reader,
-		labelId:   1,
-	}
-	ep.assignLabelsForCurrentFile()
-	return ep
-}
-
-func (ep *EdgeProducer) assignLabelsForCurrentFile() {
-	headers := ep.reader.GetHeaders()
-	//First one is -1 the rest are labels
-	ep.edgeLabels = make([]uint32, len(headers))
-	ep.edgeLabels[0] = 0
-	for i := 1; i < len(ep.edgeLabels); i++ {
-		ep.edgeLabels[i] = ep.labelId
-		fmt.Printf("Assigned label %d to header %s\n", ep.labelId, headers[i])
-		ep.labelId++
-	}
-}
-
-func (ep *EdgeProducer) getEdges() ([]Edge, error) {
-	row, err := ep.reader.ReadRow()
-	for err == io.EOF {
-		//return EOF if this was the last file
-		if ep.currIdx == len(ep.filePaths)-1 {
-			return nil, err
+	for len(filesToSplit) > 0 {
+		//Split the file into two
+		fmt.Printf("Splitting %d files into two\n", len(filesToSplit))
+		var wg sync.WaitGroup
+		for _, f := range filesToSplit {
+			wg.Add(1)
+			fileName := f
+			go func() {
+				defer wg.Done()
+				splitFile(baseDir, fileName)
+			}()
 		}
-		//Open the next file for reading.
-		ep.reader.Close()
-		ep.currIdx++
-		ep.reader = csv_util.CreateCsvFileReader(ep.filePaths[ep.currIdx])
-		fmt.Printf("Reading file %s\n", ep.filePaths[ep.currIdx])
-		ep.assignLabelsForCurrentFile()
-		row, err = ep.reader.ReadRow()
-	}
-	//At this point, row contains actual values.
-	edges := make([]Edge, len(row)-1)
-	src, err := strconv.ParseUint(row[0], 10, 32)
-	if err != nil {
-		panic(err)
-	}
-	src32 := uint32(src)
-	for i := 1; i < len(row); i++ {
-		dest, err := strconv.ParseUint(row[0], 10, 32)
+		wg.Wait()
+		filesToSplit, err = file_util.GetFilesLargerThan(baseDir, sizeMb)
 		if err != nil {
 			panic(err)
 		}
-		dest32 := uint32(dest)
-		edges[i-1] = Edge{
-			src:   src32,
-			dest:  dest32,
-			label: ep.edgeLabels[i],
+	}
+}
+
+func splitFile(dir, fileName string) {
+	var start, end uint32
+	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
+	mid := (start + end) / 2
+	low, err := os.Create(fmt.Sprintf(dir+FILE_FORMAT, start, mid))
+	if err != nil {
+		panic("Unable to create file")
+	}
+	defer low.Close()
+	high, err := os.Create(fmt.Sprintf(dir+FILE_FORMAT, mid, end))
+	if err != nil {
+		panic("Unable to create file")
+	}
+	defer high.Close()
+	old, err := os.Open(dir + fileName)
+	if err != nil {
+		panic("Unable to open old file")
+	}
+	defer old.Close()
+	oldReader := bufio.NewReader(old)
+	lowWriter := bufio.NewWriter(low)
+	highWriter := bufio.NewWriter(high)
+
+	line, err := oldReader.ReadString('\n')
+	for err == nil {
+		var src, label, dest uint32
+		fmt.Sscanf(line, "(%d,%d,%d)\n", &src, &label, &dest)
+		line, err = oldReader.ReadString('\n')
+		//Higher value is not inclusive.
+		if src >= mid {
+			highWriter.WriteString(line)
+		} else {
+			lowWriter.WriteString(line)
 		}
 	}
-	return edges, nil
+
+	err = os.Remove(dir + fileName)
+	if err != nil {
+		panic(fmt.Errorf("Unable to remove old file\n%s", err))
+	}
 }
 
 func RunAdjacencyStage(nodeCount uint32, configFile string) {
@@ -124,4 +113,6 @@ func RunAdjacencyStage(nodeCount uint32, configFile string) {
 		}
 		edges, err = edgeProducer.getEdges()
 	}
+	//Files larger than a given size should be split.
+	splitFiles(config.OutDir, config.FileSizeMb)
 }

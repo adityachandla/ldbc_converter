@@ -38,3 +38,26 @@ func GetCsvFiles(path string) ([]string, error) {
 	}
 	return filtered, nil
 }
+
+func GetFilesLargerThan(path string, sizeMb int) ([]string, error) {
+	dir, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	entries, err := dir.ReadDir(-1)
+	if err != nil {
+		return nil, err
+	}
+	files := make([]string, 0)
+	for _, e := range entries {
+		fileInfo, err := e.Info()
+		if err != nil {
+			return nil, err
+		}
+		if fileInfo.Size() > (int64(sizeMb) * 1024 * 1024) {
+			files = append(files, e.Name())
+		}
+	}
+	return files, nil
+}
