@@ -1,5 +1,7 @@
 out-sf*
 ldbc_converter
+./basic_csr
+./converter
 temp*
 mapping/*
 adjacency/*
