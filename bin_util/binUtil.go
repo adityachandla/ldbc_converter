@@ -52,8 +52,8 @@ func (br BinaryReader) ReadUint32() (uint32, error) {
 		return 0, err
 	}
 	var val uint32
-	for i := 0; i < 4; i++ {
-		val |= uint32(b)
+	for i := 0; i < 3; i++ {
+		val |= uint32(b) << (8 * i)
 		b, err = br.reader.ReadByte()
 		// A file should have bytes that are a multiple of 4
 		// if that is not the case then we need to panic.
