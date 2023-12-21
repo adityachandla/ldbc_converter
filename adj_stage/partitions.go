@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const EDGE_FORMAT = "(%d,%d,%d)\n"
+
 type Partitioner struct {
 	parts []Partition
 }
@@ -83,6 +85,6 @@ func (p *Partition) contains(e Edge) bool {
 }
 
 func (p *Partition) process(e Edge) {
-	toWrite := fmt.Sprintf("(%d,%d,%d)\n", e.src, e.label, e.dest)
+	toWrite := fmt.Sprintf(EDGE_FORMAT, e.src, e.label, e.dest)
 	p.writer.WriteString(toWrite)
 }

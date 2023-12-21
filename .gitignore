@@ -5,3 +5,4 @@ ldbc_converter
 temp*
 mapping/*
 adjacency/*
+./csr/

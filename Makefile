@@ -1,3 +1,4 @@
+.PHONY: converter basic_csr
 converter:
 	go build -o converter cmd/generic/main.go
 
