@@ -3,13 +3,14 @@ package mapping_stage
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 
 	"github.com/adityachandla/ldbc_converter/csv_util"
 	"github.com/adityachandla/ldbc_converter/file_util"
 )
 
-func (dep *mappingDependencies) processDependency(mapping map[string]uint32,
+func (dep *mappingDependencies) processDependency(mapping map[uint64]uint32,
 	newDir, oldDir string) {
 	oldFileReader := csv_util.CreateCsvFileReader(oldDir + dep.File)
 	newFileWriter := csv_util.CreateCsvFileWriter(newDir + dep.File)
@@ -21,7 +22,8 @@ func (dep *mappingDependencies) processDependency(mapping map[string]uint32,
 			if row[i] == "" {
 				continue
 			}
-			if newVal, ok := mapping[row[i]]; ok {
+			id64 := toUInt64(row[i])
+			if newVal, ok := mapping[id64]; ok {
 				row[i] = fmt.Sprintf("%d", newVal)
 			} else {
 				err := fmt.Errorf("%s not found. Row=%v. dep=%v", row[i], row, dep)
@@ -90,7 +92,7 @@ func runMappingForNode(node *nodeMapping, newDir, oldDir string) {
 
 // The mapping should be created from a file where there is no repetition
 // and all possible values of a node are contained in it.
-func createMapping(fileName, fieldName string) map[string]uint32 {
+func createMapping(fileName, fieldName string) map[uint64]uint32 {
 	csvReader := csv_util.CreateCsvFileReader(fileName)
 	headers := csvReader.GetHeaders()
 	idIndex := -1
@@ -103,12 +105,21 @@ func createMapping(fileName, fieldName string) map[string]uint32 {
 	if idIndex == -1 {
 		panic(fieldName + " not found in header")
 	}
-	mapping := make(map[string]uint32)
+	mapping := make(map[uint64]uint32)
 	row, err := csvReader.ReadRow()
 	for err == nil {
-		mapping[row[idIndex]] = nodeId
+		idUint := toUInt64(row[idIndex])
+		mapping[idUint] = nodeId
 		nodeId++
 		row, err = csvReader.ReadRow()
 	}
 	return mapping
+}
+
+func toUInt64(s string) uint64 {
+	id64, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	return id64
 }

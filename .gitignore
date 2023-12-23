@@ -6,3 +6,4 @@ temp*
 mapping/*
 adjacency/*
 csr/
+*.txt
