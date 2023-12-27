@@ -68,7 +68,7 @@ func main() {
 		newName := strings.TrimSuffix(f, ".csv") + ".csr"
 		newPath := outputDir + newName
 		csr.writeToFile(newPath)
-		fmt.Printf("Converted %s to csr format", oldPath)
+		fmt.Printf("Converted %s to csr format\n", oldPath)
 	}
 }
 

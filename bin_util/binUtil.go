@@ -20,9 +20,10 @@ func CreateWriter(fileName string) (BinaryWriter, error) {
 }
 
 func (b BinaryWriter) WriteUint32(val uint32) {
+	//First byte of array is the least significant byte of uint32
 	mask := uint32(0x00_00_00_ff)
 	for i := 0; i < 4; i++ {
-		b.writer.WriteByte(byte(val & mask))
+		b.writer.WriteByte(byte((val & mask) >> (8 * i)))
 		mask <<= 8
 	}
 }
