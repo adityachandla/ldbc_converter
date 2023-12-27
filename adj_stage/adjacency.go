@@ -60,6 +60,7 @@ func splitFiles(baseDir string, sizeMb int) {
 }
 
 func splitFile(dir, fileName string) {
+	fmt.Printf("Splitting %s\n", fileName)
 	var start, end uint32
 	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
 	mid := (start + end) / 2
@@ -80,19 +81,25 @@ func splitFile(dir, fileName string) {
 	defer old.Close()
 	oldReader := bufio.NewReader(old)
 	lowWriter := bufio.NewWriter(low)
+	defer lowWriter.Flush()
 	highWriter := bufio.NewWriter(high)
+	defer highWriter.Flush()
 
 	line, err := oldReader.ReadString('\n')
 	for err == nil {
 		var src, label, dest uint32
 		fmt.Sscanf(line, "(%d,%d,%d)\n", &src, &label, &dest)
-		line, err = oldReader.ReadString('\n')
+		if src < start || src > end {
+			e := fmt.Errorf("%d edge not within %d-%d in %s\n", src, start, end, fileName)
+			panic(e)
+		}
 		//Higher value is not inclusive.
 		if src >= mid {
 			highWriter.WriteString(line)
 		} else {
 			lowWriter.WriteString(line)
 		}
+		line, err = oldReader.ReadString('\n')
 	}
 
 	err = os.Remove(dir + fileName)

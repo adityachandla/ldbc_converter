@@ -69,7 +69,7 @@ func (ep *EdgeProducer) getEdges() ([]Edge, error) {
 		row, err = ep.reader.ReadRow()
 	}
 	//At this point, row contains actual values.
-	edges := make([]Edge, len(row)-1)
+	edges := make([]Edge, 0, len(row)-1)
 	src, err := strconv.ParseUint(row[0], 10, 32)
 	if err != nil {
 		panic(err)
@@ -78,7 +78,7 @@ func (ep *EdgeProducer) getEdges() ([]Edge, error) {
 	for i := 1; i < len(row); i++ {
 		dest, err := strconv.ParseUint(row[i], 10, 32)
 		if err != nil {
-			//It is possible that the row was empty.
+			//It is possible that this row entry was empty.
 			if row[i] == "" {
 				continue
 			} else {
@@ -86,11 +86,12 @@ func (ep *EdgeProducer) getEdges() ([]Edge, error) {
 			}
 		}
 		dest32 := uint32(dest)
-		edges[i-1] = Edge{
+		toAdd := Edge{
 			src:   src32,
 			dest:  dest32,
 			label: ep.edgeLabels[i],
 		}
+		edges = append(edges, toAdd)
 	}
 	return edges, nil
 }

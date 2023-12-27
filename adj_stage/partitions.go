@@ -33,16 +33,14 @@ func (p *Partitioner) processEdge(e Edge) {
 		mid := (low + high) / 2
 		if p.parts[mid].contains(e) {
 			p.parts[mid].process(e)
-			break
+			return
 		} else if p.parts[mid].start > e.src {
 			high = mid - 1
 		} else {
 			low = mid + 1
 		}
 	}
-	if high < low {
-		panic(fmt.Errorf("Unable to process Edge:%v", e))
-	}
+	panic(fmt.Errorf("Unable to process Edge:%v", e))
 }
 
 func (p *Partitioner) Close() {
