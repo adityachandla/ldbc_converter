@@ -11,6 +11,7 @@ import (
 
 type Edge struct {
 	src, dest, label uint32
+	incoming         bool
 }
 
 type EdgeProducer struct {
@@ -18,7 +19,7 @@ type EdgeProducer struct {
 	currIdx    int //Current index of the filePath
 	reader     *csv_util.CsvFileReader
 	edgeLabels []uint32 //Edge labels for the current file
-	labelId    uint32   //Start: 1 Stores: 1+the highest label assigned
+	labelId    uint32   //Starting val: 1 Curr Val: 1+the highest label assigned
 }
 
 func createEdgeProducer(inDir string) *EdgeProducer {
@@ -41,6 +42,7 @@ func createEdgeProducer(inDir string) *EdgeProducer {
 	return ep
 }
 
+// Assigns edge labels to the new file.
 func (ep *EdgeProducer) assignLabelsForCurrentFile() {
 	headers := ep.reader.GetHeaders()
 	//First one is -1 the rest are labels
@@ -53,6 +55,8 @@ func (ep *EdgeProducer) assignLabelsForCurrentFile() {
 	}
 }
 
+// Gets the edges produced after reading the next
+// line among all the files.
 func (ep *EdgeProducer) getEdges() ([]Edge, error) {
 	row, err := ep.reader.ReadRow()
 	for err == io.EOF {
@@ -70,28 +74,41 @@ func (ep *EdgeProducer) getEdges() ([]Edge, error) {
 	}
 	//At this point, row contains actual values.
 	edges := make([]Edge, 0, len(row)-1)
-	src, err := strconv.ParseUint(row[0], 10, 32)
+	src := toUint32(row[0])
+	for i := 1; i < len(row); i++ {
+		if row[i] == "" {
+			continue
+		}
+		dest := toUint32(row[i])
+		toAdd := getIncomingAndOutgoing(src, dest, ep.edgeLabels[i])
+		edges = append(edges, toAdd[0], toAdd[1])
+	}
+	return edges, nil
+}
+
+func toUint32(input string) uint32 {
+	res, err := strconv.ParseUint(input, 10, 32)
 	if err != nil {
 		panic(err)
 	}
-	src32 := uint32(src)
-	for i := 1; i < len(row); i++ {
-		dest, err := strconv.ParseUint(row[i], 10, 32)
-		if err != nil {
-			//It is possible that this row entry was empty.
-			if row[i] == "" {
-				continue
-			} else {
-				panic(err)
-			}
-		}
-		dest32 := uint32(dest)
-		toAdd := Edge{
-			src:   src32,
-			dest:  dest32,
-			label: ep.edgeLabels[i],
-		}
-		edges = append(edges, toAdd)
+	return uint32(res)
+}
+
+func getIncomingAndOutgoing(src, dest, label uint32) [2]Edge {
+	var res [2]Edge
+	//Outgoing edge
+	res[0] = Edge{
+		src:      src,
+		dest:     dest,
+		label:    label,
+		incoming: false,
 	}
-	return edges, nil
+	//Incoming edge
+	res[1] = Edge{
+		src:      dest,
+		dest:     src,
+		label:    label,
+		incoming: true,
+	}
+	return res
 }

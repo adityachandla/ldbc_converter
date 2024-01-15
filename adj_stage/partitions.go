@@ -6,46 +6,47 @@ import (
 	"os"
 )
 
-const EDGE_FORMAT = "(%d,%d,%d)\n"
+// This format is src, label, destination, incoming
+const EDGE_FORMAT = "(%d,%d,%d,%v)\n"
 
-type Partitioner struct {
-	parts []Partition
-}
+type Partitioner []Partition
 
-func createPartitioner(numPartitions, nodeCount uint32, outDir string) *Partitioner {
+func createPartitioner(numPartitions, nodeCount uint32, outDir string) Partitioner {
 	partSize := (nodeCount + numPartitions - 1) / numPartitions
-	partitioner := Partitioner{
-		parts: make([]Partition, 0, numPartitions),
-	}
+	partitioner := make([]Partition, 0, numPartitions)
 	start := uint32(0)
 	for i := uint32(0); i < numPartitions; i++ {
 		end := start + partSize
-		partitioner.parts = append(partitioner.parts, createPartition(start, end, outDir))
+		partitioner = append(partitioner, createPartition(start, end, outDir))
 		start += partSize
 	}
-	return &partitioner
+	return partitioner
 }
 
-func (p *Partitioner) processEdge(e Edge) {
+// Find the right partition and delegate the processing
+// to that partition.
+func (p Partitioner) processEdge(e Edge) {
 	low := 0
-	high := len(p.parts) - 1
+	high := len(p) - 1
 	for low <= high {
 		mid := (low + high) / 2
-		if p.parts[mid].contains(e) {
-			p.parts[mid].process(e)
+		if p[mid].contains(e) {
+			p[mid].process(e)
 			return
-		} else if p.parts[mid].start > e.src {
+		} else if p[mid].start > e.src {
 			high = mid - 1
 		} else {
 			low = mid + 1
 		}
 	}
+	// This may happen when the ids of the last node and
+	// end of the last partition align.
 	panic(fmt.Errorf("Unable to process Edge:%v", e))
 }
 
-func (p *Partitioner) Close() {
-	for i := range p.parts {
-		p.parts[i].Close()
+func (p Partitioner) Close() {
+	for i := range p {
+		p[i].Close()
 	}
 }
 
@@ -83,6 +84,6 @@ func (p *Partition) contains(e Edge) bool {
 }
 
 func (p *Partition) process(e Edge) {
-	toWrite := fmt.Sprintf(EDGE_FORMAT, e.src, e.label, e.dest)
+	toWrite := fmt.Sprintf(EDGE_FORMAT, e.src, e.label, e.dest, e.incoming)
 	p.writer.WriteString(toWrite)
 }
