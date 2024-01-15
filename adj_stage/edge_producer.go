@@ -23,6 +23,8 @@ type EdgeProducer struct {
 }
 
 func createEdgeProducer(inDir string) *EdgeProducer {
+	// Gets the names in sorted format so the order is the
+	// same every time.
 	names, err := file_util.GetCsvFiles(inDir)
 	if err != nil {
 		panic(err)

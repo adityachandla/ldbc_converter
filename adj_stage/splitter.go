@@ -35,7 +35,6 @@ func splitFiles(baseDir string, sizeMb int) {
 }
 
 func splitFile(dir, fileName string) {
-	fmt.Printf("Splitting %s\n", fileName)
 	var start, end uint32
 	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
 	mid := (start + end) / 2

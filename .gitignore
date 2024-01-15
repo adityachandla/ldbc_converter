@@ -7,3 +7,4 @@ mapping/*
 adjacency/*
 csr/
 *.txt
+*.csv

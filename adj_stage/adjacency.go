@@ -30,6 +30,13 @@ func readConfig(file string) *adjacencyConfig {
 	return &config
 }
 
+// We separate out the logic for edge reading and writing to file.
+//
+// EdgeProducer reads edges one by one while also mapping string
+// labels to integers.
+//
+// Parititioner creates partitions for every edge and adds every
+// edge to its correct partition.
 func RunAdjacencyStage(nodeCount uint32, configFile string) string {
 	config := readConfig(configFile)
 	os.Mkdir(config.OutDir, os.ModePerm)
