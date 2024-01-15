@@ -14,8 +14,12 @@ type mappingConfig struct {
 }
 
 type nodeMapping struct {
-	MapInputFile string                `yaml:"inputFile"`
-	MappingField string                `yaml:"mappingField"`
+	// The file that contains all values for a particular
+	// node type. Ex person.csv for person.
+	MapInputFile string `yaml:"inputFile"`
+	// The name of the field that contains the values
+	MappingField string `yaml:"mappingField"`
+	// Dependencies where that id is used.
 	Dependencies []mappingDependencies `yaml:"dependencies"`
 }
 
