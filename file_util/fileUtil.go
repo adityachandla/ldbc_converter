@@ -70,3 +70,20 @@ func RemoveDir(path string) {
 		panic(err)
 	}
 }
+
+func CreateFile(path string) *os.File {
+	file, err := os.Create(path)
+	if err != nil {
+		panic(err)
+	}
+	return file
+}
+
+func Open(filePath string) *os.File {
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	return file
+
+}

@@ -3,7 +3,6 @@ package adj_stage
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"sync"
 
 	"github.com/adityachandla/ldbc_converter/file_util"
@@ -37,21 +36,12 @@ func splitFiles(baseDir string, sizeMb int) {
 func splitFile(dir, fileName string) {
 	var start, end uint32
 	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
-	mid := (start + end) / 2
-	low, err := os.Create(fmt.Sprintf(dir+FILE_FORMAT, start, mid))
-	if err != nil {
-		panic("Unable to create file")
-	}
+	mid := findMid(dir, fileName)
+	low := file_util.CreateFile(fmt.Sprintf(dir+FILE_FORMAT, start, mid))
 	defer low.Close()
-	high, err := os.Create(fmt.Sprintf(dir+FILE_FORMAT, mid, end))
-	if err != nil {
-		panic("Unable to create file")
-	}
+	high := file_util.CreateFile(fmt.Sprintf(dir+FILE_FORMAT, mid, end))
 	defer high.Close()
-	old, err := os.Open(dir + fileName)
-	if err != nil {
-		panic("Unable to open old file")
-	}
+	old := file_util.Open(dir + fileName)
 	defer old.Close()
 	oldReader := bufio.NewReader(old)
 	lowWriter := bufio.NewWriter(low)
@@ -75,9 +65,34 @@ func splitFile(dir, fileName string) {
 		}
 		line, err = oldReader.ReadString('\n')
 	}
+	file_util.RemoveDir(dir + fileName)
+}
 
-	err = os.Remove(dir + fileName)
-	if err != nil {
-		panic(fmt.Errorf("Unable to remove old file\n%s", err))
+// This function ensures that we divide the file
+// into two roughly equal parts
+func findMid(dir, fileName string) uint32 {
+	var start, end uint32
+	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
+	counter := make([]uint32, end-start+1)
+	var total uint32
+	fileHandle := file_util.Open(dir + fileName)
+	defer fileHandle.Close()
+	reader := bufio.NewReader(fileHandle)
+
+	line, err := reader.ReadString('\n')
+	for err == nil {
+		var src uint32
+		fmt.Sscanf(line, "(%d", &src)
+		counter[src-start]++
+		total++
+		line, err = reader.ReadString('\n')
 	}
+
+	var targetSum uint32 = total / 2
+	var runningSum, idx uint32
+	for runningSum < targetSum {
+		runningSum += counter[idx]
+		idx++
+	}
+	return start + idx
 }
