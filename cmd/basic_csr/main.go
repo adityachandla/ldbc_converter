@@ -13,9 +13,13 @@ import (
 )
 
 type basicCsrFormat struct {
-	start, end uint32 //End is exclusive
-	nodeIndex  []uint32
-	edges      []edge
+	start, end  uint32 //End is exclusive
+	nodeIndices []nodeIndex
+	edges       []edge
+}
+
+type nodeIndex struct {
+	outgoing, incoming uint32
 }
 
 func (csr *basicCsrFormat) writeToFile(filename string) {
@@ -26,8 +30,9 @@ func (csr *basicCsrFormat) writeToFile(filename string) {
 	defer bw.Close()
 	bw.WriteUint32(csr.start)
 	bw.WriteUint32(csr.end)
-	for i := range csr.nodeIndex {
-		bw.WriteUint32(csr.nodeIndex[i])
+	for i := range csr.nodeIndices {
+		bw.WriteUint32(csr.nodeIndices[i].outgoing)
+		bw.WriteUint32(csr.nodeIndices[i].incoming)
 	}
 	for i := range csr.edges {
 		bw.WriteUint32(csr.edges[i].label)
@@ -37,10 +42,12 @@ func (csr *basicCsrFormat) writeToFile(filename string) {
 
 type edge struct {
 	label, dest uint32
+	outgoing    bool
 }
 
 type triple struct {
 	src, label, dest uint32
+	outgoing         bool
 }
 
 func main() {
@@ -87,15 +94,31 @@ func makeCsrFormat(triples []triple) *basicCsrFormat {
 	csr.end = triples[len(triples)-1].src
 	numVertices := csr.end - csr.start + 1
 	csr.edges = make([]edge, len(triples))
-	csr.nodeIndex = make([]uint32, numVertices)
+	csr.nodeIndices = make([]nodeIndex, numVertices)
 	currNode := triples[0].src
-	csr.nodeIndex[currNode-csr.start] = 0
+	csr.nodeIndices[currNode-csr.start].outgoing = 0
+	outgoing := true
 	for i := range triples {
-		csr.edges[i] = edge{triples[i].label, triples[i].dest}
+		csr.edges[i] = edge{triples[i].label, triples[i].dest, triples[i].outgoing}
+		//TODO fix this mess
+		//We check if we have made the switch to a new node or simply
+		//from outgoing to incoming
 		if triples[i].src != currNode {
+			//Last index did not have any incoming edges
+			if outgoing {
+				csr.nodeIndices[currNode-csr.start].incoming = uint32(i)
+			}
 			currNode = triples[i].src
-			csr.nodeIndex[currNode-csr.start] = uint32(i)
+			csr.nodeIndices[currNode-csr.start].outgoing = uint32(i)
+			outgoing = true
+		} else if outgoing && !triples[i].outgoing {
+			csr.nodeIndices[currNode-csr.start].incoming = uint32(i)
+			outgoing = false
 		}
+	}
+	//It is possible that the last index did not have any incoming edges
+	if outgoing {
+		csr.nodeIndices[len(csr.nodeIndices)-1].incoming = uint32(len(triples) - 1)
 	}
 	return &csr
 }
@@ -108,6 +131,12 @@ func triplesCmp(t1, t2 triple) int {
 		return 1
 	} else if t1.src < t2.src {
 		return -1
+	}
+	//Outgoing edge first and then incoming
+	if t1.outgoing && !t2.outgoing {
+		return -1
+	} else if !t1.outgoing && t2.outgoing {
+		return 1
 	}
 	//Src is the same, check for labels
 	if t1.label > t2.label {
@@ -136,7 +165,7 @@ func readTriples(path string) []triple {
 	line, err := reader.ReadString('\n')
 	for err == nil {
 		var t triple
-		fmt.Sscanf(line, adj_stage.EDGE_FORMAT, &t.src, &t.label, &t.dest)
+		fmt.Sscanf(line, adj_stage.EDGE_FORMAT, &t.src, &t.label, &t.dest, &t.outgoing)
 		triples = append(triples, t)
 		line, err = reader.ReadString('\n')
 	}
