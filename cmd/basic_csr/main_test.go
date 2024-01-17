@@ -17,7 +17,7 @@ func TestCsrCreation(t *testing.T) {
 		{3, 11, true}} //Node 13
 	assert.Equal(t, len(csr.edges), len(expectedEdges))
 	assert.Equal(t, csr.edges, expectedEdges)
-	assert.Equal(t, csr.nodeIndices, []nodeIndex{{0, 1}, {4, 6}, {7, 8}, {8, 8}})
+	assert.Equal(t, csr.nodeIndices, []nodeIndex{{0, 1}, {4, 6}, {7, 8}, {8, 9}})
 }
 
 func TestWriteToFile(t *testing.T) {
@@ -41,7 +41,7 @@ func TestWriteToFile(t *testing.T) {
 	assert.Equal(t, uint32(8), read(t, reader))
 
 	assert.Equal(t, uint32(8), read(t, reader))
-	assert.Equal(t, uint32(8), read(t, reader))
+	assert.Equal(t, uint32(9), read(t, reader))
 
 	//First edge
 	assert.Equal(t, uint32(2), read(t, reader))

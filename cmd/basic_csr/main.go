@@ -118,7 +118,7 @@ func makeCsrFormat(triples []triple) *basicCsrFormat {
 	}
 	//It is possible that the last index did not have any incoming edges
 	if outgoing {
-		csr.nodeIndices[len(csr.nodeIndices)-1].incoming = uint32(len(triples) - 1)
+		csr.nodeIndices[len(csr.nodeIndices)-1].incoming = uint32(len(triples))
 	}
 	return &csr
 }
