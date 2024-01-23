@@ -1,4 +1,4 @@
 inputDir: ./mapping/stage_7/
 numPartitions: 10
 outputDir: adjacency/
-fileSizeMb: 16
+fileSizeMb: 32

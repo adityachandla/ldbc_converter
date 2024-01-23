@@ -11,13 +11,14 @@ import (
 func TestCsrCreation(t *testing.T) {
 	csr := createCsr("testfile.csv")
 	expectedEdges := []edge{
-		{2, 3, true}, {1, 5, false}, {1, 7, false}, {2, 4, false}, //Node 10
-		{2, 2, true}, {2, 5, true}, {3, 1, false}, //Node 11
-		{2, 8, false}, //Node 12
-		{3, 11, true}} //Node 13
+		{2, 3}, {1, 5}, {1, 7}, {2, 4}, //Node 10
+		{2, 2}, {2, 5}, {3, 1}, //Node 11
+		{2, 8}, //Node 12
+		//Node 13 missing
+		{3, 11}} //Node 14
 	assert.Equal(t, len(csr.edges), len(expectedEdges))
 	assert.Equal(t, csr.edges, expectedEdges)
-	assert.Equal(t, csr.nodeIndices, []nodeIndex{{0, 1}, {4, 6}, {7, 8}, {8, 9}})
+	assert.Equal(t, csr.nodeIndices, []nodeIndex{{0, 1}, {4, 7}, {7, 7}, {8, 8}, {8, 9}})
 }
 
 func TestWriteToFile(t *testing.T) {

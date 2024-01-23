@@ -84,6 +84,6 @@ func (p *Partition) contains(e Edge) bool {
 }
 
 func (p *Partition) process(e Edge) {
-	toWrite := fmt.Sprintf(EDGE_FORMAT, e.src, e.label, e.dest, e.incoming)
+	toWrite := fmt.Sprintf(EDGE_FORMAT, e.src, e.label, e.dest, e.outgoing)
 	p.writer.WriteString(toWrite)
 }

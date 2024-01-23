@@ -13,7 +13,9 @@ import (
 )
 
 type basicCsrFormat struct {
-	start, end  uint32 //End is exclusive
+	start, end uint32 //End is exclusive
+	//Outgoing edges are from outgoing to incoming-1.
+	//Incoming edges are from incoming to outgoing of next idx-1.
 	nodeIndices []nodeIndex
 	edges       []edge
 }
@@ -42,7 +44,6 @@ func (csr *basicCsrFormat) writeToFile(filename string) {
 
 type edge struct {
 	label, dest uint32
-	outgoing    bool
 }
 
 type triple struct {
@@ -82,7 +83,7 @@ func main() {
 func createCsr(oldPath string) *basicCsrFormat {
 	//Read all the edges.
 	triples := readTriples(oldPath)
-	//Sort the edges, first on src, then on label, then on dest.
+	//Sort the edges, first on src, then on direction, then on label, then on dest.
 	slices.SortFunc(triples, triplesCmp)
 	//After this, convert to the basic Csr format
 	return makeCsrFormat(triples)
@@ -90,28 +91,45 @@ func createCsr(oldPath string) *basicCsrFormat {
 
 func makeCsrFormat(triples []triple) *basicCsrFormat {
 	var csr basicCsrFormat
+	//Start end
 	csr.start = triples[0].src
 	csr.end = triples[len(triples)-1].src
-	numVertices := csr.end - csr.start + 1
+
+	//Edges
 	csr.edges = make([]edge, len(triples))
+	for i := range triples {
+		csr.edges[i] = edge{triples[i].label, triples[i].dest}
+	}
+
+	//Node indices
+	numVertices := csr.end - csr.start + 1
 	csr.nodeIndices = make([]nodeIndex, numVertices)
 	currNode := triples[0].src
 	csr.nodeIndices[currNode-csr.start].outgoing = 0
 	outgoing := true
+	// What is there were no outgoing edges.
 	for i := range triples {
-		csr.edges[i] = edge{triples[i].label, triples[i].dest, triples[i].outgoing}
-		//TODO fix this mess
-		//We check if we have made the switch to a new node or simply
+		// We check if we have made the switch to a new node or simply
 		//from outgoing to incoming
 		if triples[i].src != currNode {
-			//Last index did not have any incoming edges
+			// It is possible there were some nodes in between that did not have
+			// any edges
+			for v := currNode + 1; v < triples[i].src; v++ {
+				csr.nodeIndices[v-csr.start].outgoing = uint32(i)
+				csr.nodeIndices[v-csr.start].incoming = uint32(i)
+			}
+			// Last index did not have any incoming edges
 			if outgoing {
 				csr.nodeIndices[currNode-csr.start].incoming = uint32(i)
 			}
 			currNode = triples[i].src
 			csr.nodeIndices[currNode-csr.start].outgoing = uint32(i)
 			outgoing = true
-		} else if outgoing && !triples[i].outgoing {
+		}
+		// Now we know we are at the right node, so now we check for if
+		// we need to switch from outgoing to incoming.
+		if outgoing && !triples[i].outgoing {
+			//Switch made from incoming to outgoing.
 			csr.nodeIndices[currNode-csr.start].incoming = uint32(i)
 			outgoing = false
 		}

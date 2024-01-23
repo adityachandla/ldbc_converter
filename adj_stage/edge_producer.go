@@ -11,7 +11,7 @@ import (
 
 type Edge struct {
 	src, dest, label uint32
-	incoming         bool
+	outgoing         bool
 }
 
 type EdgeProducer struct {
@@ -103,14 +103,14 @@ func getIncomingAndOutgoing(src, dest, label uint32) [2]Edge {
 		src:      src,
 		dest:     dest,
 		label:    label,
-		incoming: false,
+		outgoing: true,
 	}
 	//Incoming edge
 	res[1] = Edge{
 		src:      dest,
 		dest:     src,
 		label:    label,
-		incoming: true,
+		outgoing: false,
 	}
 	return res
 }

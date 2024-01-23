@@ -51,8 +51,8 @@ func splitFile(dir, fileName string) {
 
 	line, err := oldReader.ReadString('\n')
 	for err == nil {
-		var src, label, dest uint32
-		fmt.Sscanf(line, "(%d,%d,%d)\n", &src, &label, &dest)
+		var src uint32
+		fmt.Sscanf(line, "(%d", &src)
 		if src < start || src > end {
 			e := fmt.Errorf("%d edge not within %d-%d in %s\n", src, start, end, fileName)
 			panic(e)
