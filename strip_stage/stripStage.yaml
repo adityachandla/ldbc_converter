@@ -1,5 +1,5 @@
 outDir: ./temp/
-inputDirPrefix: ./out-sf1/
+inputDirPrefix: ./bi-sf-composite-merged-fk/
 mappings:
   - dir: Person/
     outFile: person.csv
@@ -64,8 +64,8 @@ mappings:
   - dir: Person_hasInterest_Tag/
     outFile: personHasInterest.csv
     headers:
-      - PersonId
-      - TagId
+      - personId
+      - interestId
   - dir: Tag/
     outFile: tag.csv
     headers:

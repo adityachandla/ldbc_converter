@@ -28,7 +28,7 @@ nodeMappings:
           - PersonId
       - file: personHasInterest.csv
         fields:
-          - PersonId
+          - personId
       - file: forumMember.csv
         fields:
           - PersonId
@@ -95,7 +95,7 @@ nodeMappings:
           - TagId
       - file: personHasInterest.csv
         fields:
-          - TagId
+          - interestId
       - file: forumTag.csv
         fields:
           - TagId

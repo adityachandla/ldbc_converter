@@ -8,3 +8,5 @@ basic_csr:
 clean:
 	rm -f converter
 	rm -f basic_csr
+	rm -rf adjacency
+	rm -rf mapping
