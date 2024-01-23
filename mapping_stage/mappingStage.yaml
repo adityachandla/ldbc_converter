@@ -105,6 +105,7 @@ nodeMappings:
       - file: tagClass.csv
         fields:
           - id
+          - SubclassOfTagClassId
       - file: tag.csv
         fields:
           - TypeTagClassId
