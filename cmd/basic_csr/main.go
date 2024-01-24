@@ -6,11 +6,14 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/adityachandla/ldbc_converter/adj_stage"
 	"github.com/adityachandla/ldbc_converter/bin_util"
 	"github.com/adityachandla/ldbc_converter/file_util"
 )
+
+const PARALLELISM = 4
 
 type basicCsrFormat struct {
 	start, end uint32 //End is exclusive
@@ -68,12 +71,31 @@ func main() {
 		outputDir += "/"
 	}
 	os.Mkdir(outputDir, os.ModePerm)
-	//Create one file in output directory for
-	//each file in input directory
+	createCsrFiles(files, inputDir, outputDir)
+}
+
+func createCsrFiles(files []string, inputDir, outputDir string) {
+	fileChannel := make(chan string)
+	var wg sync.WaitGroup
+	for i := 0; i < PARALLELISM; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			creator(fileChannel, inputDir, outputDir)
+		}()
+	}
 	for _, f := range files {
-		oldPath := inputDir + f
+		fileChannel <- f
+	}
+	close(fileChannel)
+	wg.Wait()
+}
+
+func creator(names <-chan string, inputDir, outputDir string) {
+	for name := range names {
+		oldPath := inputDir + name
 		csr := createCsr(oldPath)
-		newName := strings.TrimSuffix(f, ".csv") + ".csr"
+		newName := strings.TrimSuffix(name, ".csv") + ".csr"
 		newPath := outputDir + newName
 		csr.writeToFile(newPath)
 		fmt.Printf("Converted %s to csr format\n", oldPath)
@@ -83,6 +105,9 @@ func main() {
 func createCsr(oldPath string) *basicCsrFormat {
 	//Read all the edges.
 	triples := readTriples(oldPath)
+	if len(triples) == 0 {
+		return nil
+	}
 	//Sort the edges, first on src, then on direction, then on label, then on dest.
 	slices.SortFunc(triples, triplesCmp)
 	//After this, convert to the basic Csr format

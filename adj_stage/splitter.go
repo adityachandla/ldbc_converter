@@ -8,35 +8,73 @@ import (
 	"github.com/adityachandla/ldbc_converter/file_util"
 )
 
+var FileTooLarge = fmt.Errorf("File too large to split")
+
+type splitter struct {
+	wg         sync.WaitGroup
+	mu         sync.Mutex
+	largeFiles map[string]struct{}
+	baseDir    string
+}
+
 func splitFiles(baseDir string, sizeMb int) {
 	filesToSplit, err := file_util.GetFilesLargerThan(baseDir, sizeMb)
 	if err != nil {
 		panic(err)
 	}
+	s := splitter{
+		wg:         sync.WaitGroup{},
+		mu:         sync.Mutex{},
+		largeFiles: make(map[string]struct{}), //Files that were too large to split.
+		baseDir:    baseDir,
+	}
 	for len(filesToSplit) > 0 {
 		//Split the file into two
 		fmt.Printf("Splitting %d files into two\n", len(filesToSplit))
-		var wg sync.WaitGroup
-		for _, f := range filesToSplit {
-			wg.Add(1)
-			fileName := f
-			go func() {
-				defer wg.Done()
-				splitFile(baseDir, fileName)
-			}()
-		}
-		wg.Wait()
-		filesToSplit, err = file_util.GetFilesLargerThan(baseDir, sizeMb)
+		s.splitParallel(filesToSplit)
+		largeFiles, err := file_util.GetFilesLargerThan(baseDir, sizeMb)
 		if err != nil {
 			panic(err)
+		}
+		filesToSplit = make([]string, 0, len(largeFiles))
+		for _, f := range largeFiles {
+			if _, ok := s.largeFiles[f]; !ok {
+				filesToSplit = append(filesToSplit, f)
+			}
 		}
 	}
 }
 
-func splitFile(dir, fileName string) {
+func (s *splitter) splitParallel(files []string) {
+	for _, f := range files {
+		s.wg.Add(1)
+		go s.split(s.baseDir, f)
+	}
+	s.wg.Wait()
+}
+
+func (s *splitter) split(dir, fileName string) {
+	defer s.wg.Done()
+	err := splitFile(s.baseDir, fileName)
+	if err == FileTooLarge {
+		s.mu.Lock()
+		s.largeFiles[fileName] = struct{}{}
+		s.mu.Unlock()
+	}
+}
+
+func splitFile(dir, fileName string) error {
 	var start, end uint32
 	fmt.Sscanf(fileName, FILE_FORMAT, &start, &end)
 	mid := findMid(dir, fileName)
+	if mid == end && end-start > 1 {
+		mid--
+	} else if mid == start && end-start > 1 {
+		mid++
+	} else if mid == start || mid == end {
+		fmt.Println("File too large to split")
+		return FileTooLarge
+	}
 	low := file_util.CreateFile(fmt.Sprintf(dir+FILE_FORMAT, start, mid))
 	defer low.Close()
 	high := file_util.CreateFile(fmt.Sprintf(dir+FILE_FORMAT, mid, end))
@@ -66,6 +104,7 @@ func splitFile(dir, fileName string) {
 		line, err = oldReader.ReadString('\n')
 	}
 	file_util.RemoveDir(dir + fileName)
+	return nil
 }
 
 // This function ensures that we divide the file

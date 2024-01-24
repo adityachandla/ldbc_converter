@@ -27,6 +27,7 @@ rm -rf ${DIR}/graphs
 mv ${DIR}/initial_snapshot/dynamic/* ${DIR}/
 mv ${DIR}/initial_snapshot/static/* ${DIR}/
 rm -rf ${DIR}/initial_snapshot
+rm -rf ${TARGET_DIR}
 mv ${DIR} ${TARGET_DIR}
 
 find . -name '*.csv.gz' -print0 | xargs -0 -n1 gzip -d
