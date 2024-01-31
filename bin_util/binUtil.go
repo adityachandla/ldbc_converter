@@ -2,6 +2,7 @@ package bin_util
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 )
 
@@ -48,21 +49,34 @@ func CreateReader(filename string) (BinaryReader, error) {
 }
 
 func (br BinaryReader) ReadUint32() (uint32, error) {
-	b, err := br.reader.ReadByte()
-	if err != nil {
-		return 0, err
+	arr := make([]byte, 4)
+	n, err := br.reader.Read(arr)
+	if err != nil || n != 4 {
+		return 0, fmt.Errorf("unable to read 4 bytes")
+	}
+	return ParseUint32(arr), nil
+}
+
+func ParseUint32(arr []byte) uint32 {
+	if len(arr) != 4 {
+		panic("Invalid size")
 	}
 	var val uint32
 	for i := 0; i < 3; i++ {
-		val |= uint32(b) << (8 * i)
-		b, err = br.reader.ReadByte()
-		// A file should have bytes that are a multiple of 4
-		// if that is not the case then we need to panic.
-		if err != nil {
-			panic("Unable to read byte.")
-		}
+		val |= uint32(arr[i]) << (8 * i)
 	}
-	return val, nil
+	return val
+}
+
+func ParseUint32Arr(arr []byte) []uint32 {
+	if len(arr)%4 != 0 {
+		panic("Invalid size")
+	}
+	res := make([]uint32, 0, len(arr)/4)
+	for i := 0; i < len(arr); i += 4 {
+		res = append(res, ParseUint32(arr[i:i+4]))
+	}
+	return res
 }
 
 func (br BinaryReader) Close() {

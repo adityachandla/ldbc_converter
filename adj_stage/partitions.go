@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// This format is src, label, destination, incoming
+// EDGE_FORMAT This format is src, label, destination, incoming
 const EDGE_FORMAT = "(%d,%d,%d,%v)\n"
 
 type Partitioner []Partition

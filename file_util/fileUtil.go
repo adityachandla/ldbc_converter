@@ -49,7 +49,7 @@ func GetFilesLargerThan(path string, sizeMb int) ([]string, error) {
 	return files, nil
 }
 
-// Gets files unsorted.
+// GetFilesInDir Gets files unsorted.
 func GetFilesInDir(path string) ([]string, error) {
 	dir, err := os.Open(path)
 	if err != nil {

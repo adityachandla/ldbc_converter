@@ -3,8 +3,9 @@ ldbc_converter
 ./basic_csr
 ./converter
 temp*
+sf1/
+sf10/
 mapping/*
 adjacency/*
-csr/
 *.txt
 *.csv
