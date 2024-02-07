@@ -9,11 +9,15 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"sync"
 )
 
 const SizeUintBytes = 4
 const SizeNodeOffset = 2 * SizeUintBytes
 const SizeEdge = 2 * SizeUintBytes
+const Parallelism = 8
+
+var inDir, outDir string
 
 type offsetCsr struct {
 	start, end  uint32
@@ -65,24 +69,46 @@ func main() {
 	if len(os.Args) < 3 {
 		fmt.Println("Enter input and output directory.")
 	}
-	inDir := os.Args[1]
+	inDir = os.Args[1]
 	if !strings.HasSuffix(inDir, "/") {
 		inDir += "/"
 	}
-	outDir := os.Args[2]
+	outDir = os.Args[2]
 	if !strings.HasSuffix(outDir, "/") {
 		outDir += "/"
+	}
+	err := os.Mkdir(outDir, os.ModePerm)
+	if err != nil {
+		panic(err)
 	}
 	files, err := file_util.GetFilesInDir(inDir)
 	if err != nil {
 		panic(err)
 	}
+	fileChannel := make(chan string)
+	var wg sync.WaitGroup
+	for i := 0; i < Parallelism; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			fileProcessor(fileChannel)
+		}()
+	}
 	for _, file := range files {
+		fileChannel <- file
+	}
+	close(fileChannel)
+	wg.Wait()
+}
+
+func fileProcessor(fileChannel <-chan string) {
+	for file := range fileChannel {
 		edges := readEdges(inDir + file)
 		slices.SortFunc(edges, adjacencyCmp)
 		csr := convertToCsr(edges)
 		newName := strings.TrimSuffix(file, ".csv") + ".ocsr"
 		csr.writeToFile(outDir + newName)
+		fmt.Printf("Processed file %s\n", outDir+newName)
 	}
 }
 
