@@ -1,5 +1,7 @@
 bi-sf*
 ldbc_converter
+flink
+./neoLoad
 ./basic_csr
 ./converter
 temp*
@@ -9,3 +11,4 @@ mapping/*
 adjacency/*
 *.txt
 *.csv
+.idea/
