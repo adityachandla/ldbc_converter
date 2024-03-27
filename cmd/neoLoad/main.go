@@ -23,6 +23,8 @@ const query = "MERGE (n1:NODE {uid: $id1}) MERGE (n2:NODE {uid: $id2}) MERGE (n1
 
 var driver neo4j.DriverWithContext
 
+var offset = 0
+
 // Mapping from a label to the query corresponding to that label.
 var queryMap map[uint32]string
 
@@ -103,6 +105,13 @@ func main() {
 	if !strings.HasSuffix(inDir, "/") {
 		inDir += "/"
 	}
+	if len(os.Args) == 3 {
+		var err error
+		offset, err = strconv.Atoi(os.Args[2])
+		if err != nil {
+			panic(err)
+		}
+	}
 	createDriver()
 	createIndex()
 	createQueryMap()
@@ -118,7 +127,9 @@ func main() {
 		edgeBuffer[bufIdx] = e
 		bufIdx++
 		if bufIdx == bufSize {
-			addData(edgeBuffer)
+			if total >= offset {
+				addData(edgeBuffer)
+			}
 			total += bufSize
 			fmt.Printf("Added %d Rows\r", total)
 			bufIdx = 0

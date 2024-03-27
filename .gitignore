@@ -10,5 +10,4 @@ sf10/
 mapping/*
 adjacency/*
 *.txt
-*.csv
 .idea/
