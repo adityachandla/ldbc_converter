@@ -40,7 +40,7 @@ func readConfig(file string) *adjacencyConfig {
 func RunAdjacencyStage(nodeCount uint32, configFile string) string {
 	config := readConfig(configFile)
 	os.Mkdir(config.OutDir, os.ModePerm)
-	partitioner := createPartitioner(config.Partitions, nodeCount, config.OutDir)
+	partitioner := createPartitioner(config, nodeCount)
 	edgeProducer := createEdgeProducer(config.InDir)
 	edges, err := edgeProducer.getEdges()
 	for err != io.EOF {
@@ -50,6 +50,6 @@ func RunAdjacencyStage(nodeCount uint32, configFile string) string {
 		edges, err = edgeProducer.getEdges()
 	}
 	//Files larger than a given size should be split.
-	splitFiles(config.OutDir, config.FileSizeMb)
+	//splitFiles(config.OutDir, config.FileSizeMb)
 	return config.OutDir
 }

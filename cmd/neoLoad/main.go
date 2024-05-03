@@ -15,11 +15,12 @@ import (
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 )
 
-const DB_NAME = "neo4j1"
+const DB_NAME = "neo4j"
 const username = "neo4j"
 const password = "hello123"
 const uri = "neo4j://localhost"
 const query = "MERGE (n1:NODE {uid: $id1}) MERGE (n2:NODE {uid: $id2}) MERGE (n1)-[:%s]->(n2)"
+const bufSize = 20_000
 
 var driver neo4j.DriverWithContext
 
@@ -118,7 +119,6 @@ func main() {
 	er := NewEdgeReader(inDir)
 	defer driver.Close(context.Background())
 
-	bufSize := 50_000
 	edgeBuffer := make([]edge, bufSize)
 	bufIdx := 0
 	e, err := er.ReadRelation()

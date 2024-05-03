@@ -4,23 +4,74 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/adityachandla/ldbc_converter/csv_util"
+	"github.com/adityachandla/ldbc_converter/file_util"
 )
 
-// EDGE_FORMAT This format is src, label, destination, incoming
+// EDGE_FORMAT This format is src, label, destination, outgoing
 const EDGE_FORMAT = "(%d,%d,%d,%v)\n"
+
+// OUTGOING OFFSET and INCOMING OFFSET as uint32s
+const SRC_SIZE = 4 + 4
+
+// DESTINATION and LABEL as uint32s
+const EDGE_SIZE = 4 + 4
 
 type Partitioner []Partition
 
-func createPartitioner(numPartitions, nodeCount uint32, outDir string) Partitioner {
-	partSize := (nodeCount + numPartitions - 1) / numPartitions
-	partitioner := make([]Partition, 0, numPartitions)
+func createPartitioner(config *adjacencyConfig, nodeCount uint32) Partitioner {
+	nodeCountMap := getNodeCountMap(config.InDir)
+	targetSizeBytes := config.FileSizeMb * 1024 * 1024
 	start := uint32(0)
-	for i := uint32(0); i < numPartitions; i++ {
-		end := start + partSize
-		partitioner = append(partitioner, createPartition(start, end, outDir))
-		start += partSize
+	currSize := 0
+	partitioner := make([]Partition, 0, 32)
+
+	for i := uint32(0); i <= nodeCount; i++ {
+		currSize += SRC_SIZE + (EDGE_SIZE * nodeCountMap[i])
+		if currSize >= targetSizeBytes {
+			partition := createPartition(start, i+1, config.OutDir)
+			partitioner = append(partitioner, partition)
+
+			currSize = 0
+			start = i + 1
+		}
 	}
+	if currSize > 0 {
+		partition := createPartition(start, nodeCount, config.OutDir)
+		partitioner = append(partitioner, partition)
+	}
+
 	return partitioner
+}
+
+func getNodeCountMap(dir string) map[uint32]int {
+	files, err := file_util.GetCsvFiles(dir)
+	if err != nil {
+		panic(err)
+	}
+	res := make(map[uint32]int)
+	for _, f := range files {
+		r := csv_util.CreateCsvFileReader(dir + f)
+		row, err := r.ReadRow()
+		for err == nil {
+			//Count outgoing edge for src
+			src := toUint32(row[0])
+
+			//Count incoming edges for dest
+			for _, destStr := range row[1:] {
+				if destStr == "" {
+					continue
+				}
+				dest := toUint32(destStr)
+				res[dest]++
+				res[src]++
+			}
+
+			row, err = r.ReadRow()
+		}
+	}
+	return res
 }
 
 // Find the right partition and delegate the processing
