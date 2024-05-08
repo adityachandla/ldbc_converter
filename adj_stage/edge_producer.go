@@ -22,7 +22,7 @@ type EdgeProducer struct {
 	labelId    uint32   //Starting val: 1 Curr Val: 1+the highest label assigned
 }
 
-func createEdgeProducer(inDir string) *EdgeProducer {
+func createEdgeProducer() *EdgeProducer {
 	// Gets the names in sorted format so the order is the
 	// same every time.
 	names, err := file_util.GetCsvFiles(inDir)

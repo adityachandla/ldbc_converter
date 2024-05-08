@@ -9,5 +9,6 @@ sf1/
 sf10/
 mapping/*
 adjacency/*
+nodeMap.csv
 *.txt
 .idea/

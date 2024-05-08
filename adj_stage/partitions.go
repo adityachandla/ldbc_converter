@@ -20,9 +20,10 @@ const EDGE_SIZE = 4 + 4
 
 type Partitioner []Partition
 
-func createPartitioner(config *adjacencyConfig, nodeCount uint32) Partitioner {
-	nodeCountMap := getNodeCountMap(config.InDir)
-	targetSizeBytes := config.FileSizeMb * 1024 * 1024
+func createPartitioner(outDir string, partitionSizeMb int) Partitioner {
+	nodeCountMap := getNodeCountMap(inDir)
+	nodeCount := uint32(len(nodeCountMap))
+	targetSizeBytes := partitionSizeMb * 1024 * 1024
 	start := uint32(0)
 	currSize := 0
 	partitioner := make([]Partition, 0, 32)
@@ -30,7 +31,7 @@ func createPartitioner(config *adjacencyConfig, nodeCount uint32) Partitioner {
 	for i := uint32(0); i <= nodeCount; i++ {
 		currSize += SRC_SIZE + (EDGE_SIZE * nodeCountMap[i])
 		if currSize >= targetSizeBytes {
-			partition := createPartition(start, i+1, config.OutDir)
+			partition := createPartition(start, i+1, outDir)
 			partitioner = append(partitioner, partition)
 
 			currSize = 0
@@ -38,7 +39,7 @@ func createPartitioner(config *adjacencyConfig, nodeCount uint32) Partitioner {
 		}
 	}
 	if currSize > 0 {
-		partition := createPartition(start, nodeCount, config.OutDir)
+		partition := createPartition(start, nodeCount, outDir)
 		partitioner = append(partitioner, partition)
 	}
 
