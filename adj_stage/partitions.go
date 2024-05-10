@@ -20,7 +20,7 @@ const EDGE_SIZE = 4 + 4
 
 type Partitioner []Partition
 
-func createPartitioner(outDir string, partitionSizeMb int) Partitioner {
+func createPartitioner(inDir, outDir string, partitionSizeMb int) Partitioner {
 	nodeCountMap := getNodeCountMap(inDir)
 	nodeCount := uint32(len(nodeCountMap))
 	targetSizeBytes := partitionSizeMb * 1024 * 1024

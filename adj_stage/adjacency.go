@@ -6,7 +6,6 @@ import (
 )
 
 const FILE_FORMAT string = "s_%d_e_%d.csv"
-const inDir = "./mapping/stage_7/"
 
 // We separate out the logic for edge reading and writing to file.
 //
@@ -15,10 +14,10 @@ const inDir = "./mapping/stage_7/"
 //
 // Parititioner creates partitions for every edge and adds every
 // edge to its correct partition.
-func RunAdjacencyStage(partitionSizeMb int, outDir string) {
+func RunAdjacencyStage(partitionSizeMb int, inDir, outDir string) {
 	os.Mkdir(outDir, os.ModePerm)
-	partitioner := createPartitioner(outDir, partitionSizeMb)
-	edgeProducer := createEdgeProducer()
+	partitioner := createPartitioner(inDir, outDir, partitionSizeMb)
+	edgeProducer := createEdgeProducer(inDir)
 	edges, err := edgeProducer.getEdges()
 	for err != io.EOF {
 		for _, e := range edges {
@@ -26,4 +25,5 @@ func RunAdjacencyStage(partitionSizeMb int, outDir string) {
 		}
 		edges, err = edgeProducer.getEdges()
 	}
+	partitioner.Close()
 }
